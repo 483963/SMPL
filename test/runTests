@@ -1,0 +1,29 @@
+#!/bin/sh
+echo "=== Test01.smpl ==="
+java -classpath ../bin SMPL test01.smpl
+echo "=== Test02.smpl ==="
+java -classpath ../bin SMPL test02.smpl
+echo "=== Test03.smpl ==="
+java -classpath ../bin SMPL test03.smpl
+echo "=== Test04.smpl ==="
+java -classpath ../bin SMPL test04.smpl
+echo "=== Test05.smpl ==="
+java -classpath ../bin SMPL test05.smpl
+echo "=== Test06.smpl ==="
+java -classpath ../bin SMPL test06.smpl
+echo "=== Test07.smpl ==="
+java -classpath ../bin SMPL test07.smpl
+echo "=== Test08.smpl ==="
+java -classpath ../bin SMPL test08.smpl
+echo "=== Test09.smpl ==="
+java -classpath ../bin SMPL test09.smpl
+echo "=== Test10.smpl ==="
+java -classpath ../bin SMPL test10.smpl
+echo "=== Test11.smpl ==="
+java -classpath ../bin SMPL test11.smpl
+echo "=== Test12.smpl ==="
+java -classpath ../bin SMPL test12.smpl
+echo "=== Test13.smpl ==="
+java -classpath ../bin SMPL test13.smpl
+echo "=== Test14.smpl ==="
+java -classpath ../bin SMPL test14.smpl

@@ -1,0 +1,24 @@
+# Building for linux
+```
+cd SMPL/src/lang/parser/ 
+jjtree SMPL.jjt
+# or java -cp javacc.jar jjtree SMPL.jjt 
+cd ast/ # subdir
+javacc SMPL.jj
+# or java -cp ../javacc.jar javacc SMPL.jj
+cd SMPL/ # main dir
+javac -d bin/ $(find . -name "**.java")
+```
+
+# Building for windows
+```
+cd SMPL\src\lang\parser\
+jjtree SMPL.jjt
+# or java -cp javacc.jar jjtree SMPL.jjt 
+cd ast\ # subdir
+javacc SMPL.jj
+# or java -cp ..\javacc.jar javacc SMPL.jj
+cd SMPL\ # main dir
+dir /s /B src\*.java > java_files.txt
+javac -d bin\ @java_files.txt
+```

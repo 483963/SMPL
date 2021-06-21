@@ -1,0 +1,34 @@
+// returns new list with only the items satisfying the condition
+fn filter(list, cond){
+    l = []
+    n = list.len()
+    for(i = 0; i < n; i = i + 1) {
+        v = list.at(i)
+        if (cond(v))
+            l.push(v)
+    }
+    return l
+}
+
+// returns new list with the transformed values
+fn mapper(list, transform){
+    l = []
+    n = list.len()
+    for(i = 0; i < n; i = i + 1) {
+        v = list.at(i)
+        l.push(transform(v))
+    }
+    return l
+}
+
+list = [1,2,3,4,5,6]
+
+fn even(i) {
+    return i % 2 == 0
+}
+
+// passing function
+write filter(list, even)
+
+// using anonymous function
+write mapper(list, fn(i) { return i * 2 })

@@ -1,0 +1,38 @@
+// object-oriented style counter
+fn counter() {
+    i = 0 // initializing
+    return new {
+        val: fn() {
+            return i
+        }
+        inc: fn() {
+            i = i + 1
+        }
+        dec: fn() {
+            i = i - 1
+        }
+    }
+}
+
+// creates counter instances
+c1 = counter()
+c2 = counter()
+
+write "c1 = " + c1.val()
+write "c2 = " + c2.val()
+
+// modifying counter state
+c1.inc()
+c1.inc()
+
+c2.inc()
+
+write "c1 = " + c1.val()
+write "c2 = " + c2.val()
+
+c1.inc()
+
+c2.dec()
+
+write "c1 = " + c1.val()
+write "c2 = " + c2.val()

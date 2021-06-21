@@ -1,0 +1,33 @@
+// find nth item of fibbonacci series using recursive call
+fn fib(n) {
+    write "Computing " + i
+    if (n == 0 or n == 1)
+        r = n
+    else
+        // fib call here is also cached because of the scope
+        r = fib(n - 1) + fib(n - 2)
+
+   return r
+}
+
+// caches the call of expensive function f
+fn cacher(f){
+    // using hashmap for storing the cache
+    cache = map()
+    
+    return fn(arg) {
+        if (not cache.contains(arg)) {
+            cache.set(arg, f(arg))
+        }
+            
+        return cache.get(arg)
+    }
+}
+
+// make fib a cached function
+fib = cacher(fib)
+
+// calls cached fib function
+for (i = 0; i < 35; i = i + 1) {
+    write fib(i)
+}

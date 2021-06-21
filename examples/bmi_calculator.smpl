@@ -1,0 +1,53 @@
+// sort the list in place
+
+fn calculate_bmi(weight_kg, hight_meter){
+    bmi = weight_kg / math.pow(hight_meter, 2)
+    
+    if (bmi < 16) desc = "Severe thinnes"
+    else if (bmi < 17) desc = "Moderate thinnes"
+    else if (bmi < 18.5) desc = "Mild thinnes"
+    else if (bmi < 25) desc = "Normal"
+    else if (bmi < 30) desc = "Over Weight"
+    else if (bmi < 35) desc = "Obese class I"
+    else if (bmi < 40) desc = "Obese class II"
+    else desc = "Obese class II"
+    
+    return new {
+        desc: desc
+        value: bmi
+    }
+}
+
+fn get_num(invalid_msg){
+    res = float(input())
+    while (res == null) {
+        print(invalid_msg)
+        res = float(input())        
+    }
+    return res
+}
+
+
+while (true) {
+    print("whats your height in meters?")
+    height = get_num("Oh! that looks like an invalid height, try again.")
+    
+    print("whats your weight in Kg?")
+    weight_kg = get_num("Oh! that looks like an invalid weight, try again.")
+    
+    bmi = calculate_bmi(weight_kg, height)
+    
+    print("Your BMI is " + bmi.value + " and you're in " + bmi.desc + " category")
+    
+    print("")
+    
+    print("Try again? (y/yes)")
+    again = input().lower()
+    
+    if (again == "y" or again == "yes") {
+        print("\n")
+        continue
+    } else {
+        break
+    }
+}

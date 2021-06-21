@@ -1,0 +1,14 @@
+java -classpath ../bin SMPL test01.smpl
+java -classpath ../bin SMPL test02.smpl
+java -classpath ../bin SMPL test03.smpl
+java -classpath ../bin SMPL test04.smpl
+java -classpath ../bin SMPL test05.smpl
+java -classpath ../bin SMPL test06.smpl
+java -classpath ../bin SMPL test07.smpl
+java -classpath ../bin SMPL test08.smpl
+java -classpath ../bin SMPL test09.smpl
+java -classpath ../bin SMPL test10.smpl
+java -classpath ../bin SMPL test11.smpl
+java -classpath ../bin SMPL test12.smpl
+java -classpath ../bin SMPL test13.smpl
+java -classpath ../bin SMPL test14.smpl

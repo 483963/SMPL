@@ -1,0 +1,433 @@
+/*
+ * A simple expression parser and evaluator
+ *
+ */
+
+options {
+  LOOKAHEAD = 1;
+  CHOICE_AMBIGUITY_CHECK = 2;
+  OTHER_AMBIGUITY_CHECK = 1;
+  STATIC = false;
+  DEBUG_PARSER = false;
+  DEBUG_LOOKAHEAD = false;
+  DEBUG_TOKEN_MANAGER = false;
+  ERROR_REPORTING = true;
+  JAVA_UNICODE_ESCAPE = false;
+  UNICODE_INPUT = false;
+  IGNORE_CASE = false;
+  USER_TOKEN_MANAGER = false;
+  USER_CHAR_STREAM = false;
+  BUILD_PARSER = true;
+  BUILD_TOKEN_MANAGER = true;
+  SANITY_CHECK = true;
+  FORCE_LA_CHECK = false;
+  MULTI = true;
+  VISITOR = true;
+  JDK_VERSION = "1.8";
+  NODE_DEFAULT_VOID = true;
+  NODE_EXTENDS = "lang.interpreter.BaseASTNode";
+  NODE_PACKAGE = "lang.parser.ast";
+  JJTREE_OUTPUT_DIRECTORY = "ast";
+}
+
+PARSER_BEGIN(SMPL)
+package lang.parser.ast;
+public class SMPL {}
+PARSER_END(SMPL)
+
+/*
+ *
+ * Lexer definitions
+ *
+ */
+
+SKIP : /* WHITE SPACE */
+{
+  " "
+| "\t"
+| "\r"
+| "\f"
+| "\n"
+}
+
+SPECIAL_TOKEN : /* COMMENTS */
+{
+  <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+| <MULTI_LINE_COMMENT: "/*" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
+}
+
+TOKEN : /* RESERVED WORDS AND LITERALS */
+{
+  < IF: "if" >
+| < ELSE: "else" >
+| < WHILE: "while" >
+| < FOR: "for" >
+| < WRITE: "write" >
+| < NEW: "new" >
+| < FN: "fn" >
+| < RETURN: "return" >
+| < BREAK: "break" >
+| < CONTINUE: "continue" >
+| < OR: "or" >
+| < AND: "and" >
+| < NOT: "not" >
+| < NULL: "null" >
+| < TRUE: "true" >
+| < FALSE: "false" >
+}
+
+TOKEN : /* LITERALS */
+{
+  < INTEGER_LITERAL:
+        <DECIMAL_LITERAL>
+      | <HEX_LITERAL>
+      | <OCTAL_LITERAL>
+  >
+|
+  < #DECIMAL_LITERAL: ("0" | ["1"-"9"] (["0"-"9"])*) >
+|
+  < #HEX_LITERAL: "0x" (["0"-"9","a"-"f","A"-"F"])+ >
+|
+  < #OCTAL_LITERAL: "0o" (["0"-"7"])+ >
+|
+  < FLOATING_POINT_LITERAL:
+        (["0"-"9"])+ "." (["0"-"9"])* (<EXPONENT>)? ("f")?
+      | "." (["0"-"9"])+ (<EXPONENT>)? ("f")?
+      | (["0"-"9"])+ <EXPONENT> ("f")?
+      | (["0"-"9"])+ (<EXPONENT>)? "f"
+  >
+|
+  < #EXPONENT: "e" (["+","-"])? (<DIGIT>)+ >
+|
+  < STRING_LITERAL:
+     ( 
+      "\""
+      (   (~["\"","\\","\n","\r"])
+        | ("\\"
+            ["n","t","b","r","f","\\","'","\""]
+          )
+      )*
+      "\""
+     )
+   | (
+      "'"
+      (   (~["\'","\\","\n","\r"])
+        | ("\\"
+            ["n","t","b","r","f","\\","'","\""]
+          )
+      )*
+      "'"
+     )
+  >
+}
+
+TOKEN : /* IDENTIFIERS */
+{
+  < IDENTIFIER: <LETTER> (<LETTER>|<DIGIT>)* >
+| < #LETTER:
+      [
+       "_",
+       "A"-"Z",
+       "a"-"z"
+      ]
+  >
+|
+  < #DIGIT:   [ "0"-"9" ]
+  >
+}
+
+TOKEN : /* SEPARATORS */
+{
+  < LPAREN: "(" >
+| < RPAREN: ")" >
+| < LBRACE: "{" >
+| < RBRACE: "}" >
+| < LBRACKET: "[" >
+| < RBRACKET: "]" >
+| < COMMA: "," >
+| < DOT: "." >
+}
+
+TOKEN : /* OPERATOR SYMBOLS */
+{
+  < SET: "=" >
+| < EQ: "==" >
+| < GT: ">" >
+| < LT: "<" >
+| < LE: "<=" >
+| < GE: ">=" >
+| < NE: "!=" >
+| < ADD: "+" >
+| < SUB: "-" >
+| < MUL: "*" >
+| < DIV: "/" >
+| < REM: "%" >
+| < NULLC: "?" >
+}
+
+/***********************************************
+ *          THE GRAMMAR STARTS HERE            *
+ ***********************************************/
+
+ASTCode code() #Code :
+{}
+{
+     			      statement_list() <EOF>
+     			      {return jjtThis;}
+}
+
+
+void statement_list():
+{}
+{
+                ( statement() )*
+}
+
+void statement() #Statement :
+{}
+{
+					LOOKAHEAD(2) set()
+				|	LOOKAHEAD(2) prop_get() (
+				                   "=" expression() #PropSet(2)
+				                 | (LOOKAHEAD(2) (prop() #PropGet(2))* arglist() #FnCall(2) )*
+				                 )
+				|	fn_def()
+				|	block()
+				|	if_statement()
+				|   while_loop()
+				|	for_loop()
+				|	write()
+				|   return_expr()
+				|   <BREAK> #Break
+				|   <CONTINUE> #Continue
+}
+
+void block() #Block :
+{}
+{
+				   "{" statement_list() "}"
+}
+
+void parmlist() #Parmlist :
+{}
+{
+					"(" [ identifier() ( "," identifier() )* ] ")"
+}
+
+void fn_def() #FnDef :
+{}
+{
+					<FN> identifier() parmlist() block()
+}
+
+void return_expr() #ReturnExpression(1) :
+{}
+{
+					<RETURN> [ LOOKAHEAD(2) expression() ]
+}
+
+void set() :
+{}
+{
+					identifier() "=" expression() #Set(2)
+}
+
+
+void if_statement() #IfStatement :
+{}
+{
+  					<IF> "(" expression() ")" statement()
+  					[ LOOKAHEAD(2) <ELSE>  statement() {jjtThis.ifHasElse = true;} ]
+}
+
+void while_loop() #WhileLoop :
+{}
+{
+  					<WHILE> "(" expression() ")" statement()
+}
+
+void for_loop() #ForLoop :
+{}
+{
+  					<FOR> "(" set() ";" expression() ";" set() ")" statement()
+}
+
+
+void write() :
+{}
+{
+					<WRITE> expression() #Write(1)
+}
+
+void arglist() #ArgList :
+{}
+{
+					"(" [ expression() ] ( "," expression() )* ")"
+}
+
+//
+// Expressions
+//
+
+void expression() :
+{}
+{
+                    <FN> parmlist() block() #AnonymousFn(2)
+                  | or_expression()
+}
+
+void or_expression() : 
+{} 
+{ 
+			      and_expression() ( <OR> and_expression() #Or(2) )* 
+}
+
+void and_expression() : 
+{} 
+{ 
+			      compare_expression() ( <AND> compare_expression() #And(2) )*
+}
+
+void compare_expression() : 
+{} 
+{ 
+                              null_coalesce() (
+                                 "=="  null_coalesce() #CompEqual(2)
+                               | "!=" null_coalesce() #CompNequal(2)
+                               | ">=" null_coalesce() #CompGTE(2)
+                               | "<=" null_coalesce() #CompLTE(2)
+                               | ">"  null_coalesce() #CompGT(2)
+                               | "<"  null_coalesce() #CompLT(2)
+                               )*
+}
+
+void null_coalesce() :
+{}
+{
+                              add_expression() (
+                                  "?" add_expression() #NullCoalesce(2)
+                              )*
+}
+
+void add_expression() : 
+{} 
+{
+                              mul_expression() (
+                                  "+"  mul_expression() #Add(2)
+                                | "-"  mul_expression() #Sub(2)
+                              )*
+}
+
+void mul_expression() : 
+{} 
+{ 
+			      			  unary_expression() (
+                                  "*" unary_expression() #Mul(2)
+                                | "/" unary_expression() #Div(2)
+                                | "%" unary_expression() #Rem(2)
+                              )*
+}
+
+
+void unary_expression() :
+{}
+{
+                              <NOT> unary_expression() #UnaryNot(1)
+                            | "+"   unary_expression() #UnaryPlus(1)
+                            | "-"   unary_expression() #UnaryMinus(1)
+                            |  primary_expression() (
+                                  LOOKAHEAD(2) (
+                                        prop() #PropGet(2) |
+                                        arglist() #FnCall(2)
+                                  )
+                             )*
+}
+
+void prop_get():
+{}
+{
+                             primary_expression() (LOOKAHEAD(1) prop() #PropGet(2))*
+}
+
+void prop() :
+{}
+{
+							"." identifier()
+}
+
+void primary_expression() :
+{}
+{
+
+                              literal()
+                            | get()
+                            | new_()
+                            | "(" expression() ")"
+}
+
+void new_() #New:
+{}
+{                             <NEW> "{"
+                                    (identifier() ":" expression() #NewProp(2))*
+                              "}"
+}
+
+void literal() :
+{}
+{
+							  int_()
+                            | str()
+							| float_()
+							| bool()
+							| null_()
+                            | list()
+}
+
+void identifier() #Identifier :
+{Token t;}
+{
+	t = <IDENTIFIER> {jjtThis.tokenValue = t.image;}
+}
+
+void get() #Get :
+{Token t;}
+{
+	t = <IDENTIFIER> {jjtThis.tokenValue = t.image;}
+}
+
+void str() #Character :
+{Token t;}
+{
+	t = <STRING_LITERAL> {jjtThis.tokenValue = t.image;}
+}
+
+void int_() #Int :
+{Token t;} 
+{ 
+	t = <INTEGER_LITERAL> {jjtThis.tokenValue = t.image;}
+}
+
+void float_() #Float : 
+{Token t;} 
+{ 
+	t = <FLOATING_POINT_LITERAL> {jjtThis.tokenValue = t.image;}
+}
+
+void bool() : 
+{} 
+{ 
+			      <TRUE> #True
+                | <FALSE> #False
+}
+
+void null_() :
+{}
+{
+			      <NULL> #Null
+}
+
+void list() #List :
+{}
+{
+			      "[" [ expression() ] ( "," expression() )* "]"
+}
